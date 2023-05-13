@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe 2</title>
+    <link rel="stylesheet" href="tictactoe.css">
+</head>
+<body>
+
+    <h1>Tic Tac Toe 2</h1>
+
+    <div class="gameContainer"></div>
+
+    <div class="details">
+        <input type="text" id="playerX" placeholder="playerX" required>
+
+        <input type="text" id="playerO" placeholder="playerO" required>
+
+        <button id="startButton">Start Game</button>
+        <button id="restartButton">Restart Game</button>
+    </div>
+
+    <div class="messageContainer"></div>
+<script>
+    const startButton=document.querySelector('#startButton');
+    const restartButton=document.querySelector('#restartButton');
+    const gameContainer=document.querySelector('.gameContainer');
+    const messageContainer=document.querySelector('.messageContainer');
+
+    const Player=(name,marker)=>{
+        return {
+            name,
+            marker,
+        }
+    };
+    
+    const Gameboard=(()=>{
+        gameGrids=["","","","","","","","",""];
+
+        const display=()=>{
+            displayGrid="";
+            gameGrids.forEach((gameGrid,i)=>{
+                displayGrid +=`<div class="gameGrids" id="${i}"">${gameGrid}</div>`             
+            });
+            gameContainer.innerHTML=displayGrid;
+
+
+            const allGrids=document.querySelectorAll('.gameGrids')
+
+            allGrids.forEach(eachGrid=>eachGrid.addEventListener('click',(e)=>{
+                Game.handleClick(e.target.id);
+            }));
+        }
+
+        const updateGrid=(index,marker)=>{
+            gameGrids[index]=marker;
+            display();
+        }
+
+        const getGrids=()=>
+            gameGrids;
+
+        return {
+            display,
+            getGrids,
+            updateGrid,
+        }
+    })();
+
+    const allMessage=(()=>{
+        const forWinner=(name)=>{
+            messageContainer.innerHTML=`${name} is the winner!!!`;
+        }
+
+        const forTie=(name1, name2)=>{
+            messageContainer.innerHTML=`${name1} and ${name2} tie!!!`;
+        }
+
+        const forRestart=()=>{
+            messageContainer.innerHTML="";
+        }
+
+        return {
+            forWinner,
+            forTie,
+            forRestart,
+        }
+    })();
+
+    const Game=(()=>{
+        let players=[];
+        let curentPlayerIndex=0;
+        let boardFull=false;
+        let gotWinner=false;
+
+        const start=()=>{
+            players=[Player(document.querySelector('#playerX'),'X'),
+                    Player(document.querySelector('#playerO'),'O')];
+            Gameboard.display();
+        }
+
+        const restart=()=>{
+            gotWinner=false;
+            boardFull=false;
+            currentPlayerIndex=0;
+            let currentGrids=Gameboard.getGrids();
+            let i=0;
+            while (i<9){
+                Gameboard.updateGrid(i,"")
+                i++;
+            }
+            Gameboard.display();
+            console.log({gotWinner,boardFull,curentPlayerIndex});
+            allMessage.forRestart();  
+        }
+
+        const handleClick=(index)=>{
+            if (boardFull || gotWinner) {
+                return;
+            }
+
+            if (Gameboard.getGrids()[index] !== ""){
+                return;
+            } else {
+                Gameboard.updateGrid(index,players[curentPlayerIndex].marker);
+                checkGameOver(curentPlayerIndex);
+
+                if (curentPlayerIndex===0){
+                    curentPlayerIndex=1;
+                } else {
+                    curentPlayerIndex=0;
+                }
+            }
+        }
+
+        const checkGameOver=(currentPlayerIndex)=>{
+            let currentGrids=Gameboard.getGrids();
+            let sum=0;
+            let i=0;
+            while (i<9){
+                if (currentGrids[i]===""){
+                    sum += 1;
+                }
+                i++;
+            }
+
+            if (sum===0) {
+                boardFull=true;
+            }
+
+            checkForWinner(currentPlayerIndex);
+
+            checkForTie();
+        }
+
+        const checkForWinner=()=>{
+            let currentGrids=Gameboard.getGrids();
+            const winningCombos=[
+                [0,1,2],
+                [3,4,5],
+                [6,7,8],
+                [0,3,6],
+                [1,4,7],
+                [2,5,8],
+                [0,4,8],
+                [2,4,6],
+            ]
+            winningCombos.forEach(winningCombo=>{
+                if (currentGrids[winningCombo[0]]==="" ||
+                    currentGrids[winningCombo[1]]==="" ||
+                    currentGrids[winningCombo[2]]==="" ){
+                    return;
+                } else {
+                    if (currentGrids[winningCombo[0]]===currentGrids[winningCombo[1]] &&
+                     currentGrids[winningCombo[1]]===currentGrids[winningCombo[2]]){
+                        gotWinner=true;
+                        allMessage.forWinner(document.querySelector(`#player${currentGrids[winningCombo[0]]}`).value);
+                     } else {
+                        return;
+                     }
+                }
+            })
+        }
+
+        const checkForTie=()=>{
+            if (boardFull && !gotWinner){
+                allMessage.forTie(document.querySelector('#playerX').value,document.querySelector('#playerO').value)
+            }
+        }
+
+        return {
+            start,
+            handleClick,
+            checkGameOver,
+            checkForWinner,
+            checkForTie,
+            restart,
+        }
+    })();
+
+    startButton.addEventListener('click',()=>{
+        Game.start();
+    })
+
+    restartButton.addEventListener('click',()=>{
+        Game.restart();
+    })
+
+
+
+
+
+</script>
+
+<!-- change current player index back to 0 after restart -->
+</body>
+</html>
